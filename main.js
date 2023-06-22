@@ -14,7 +14,7 @@ let end = false;
 
 document.getElementById("ctl00_cph_a_btnAjoutIndirect").click();
 
-let iterationBU = 2;
+let iterationBU = 1;
 let BU_Project_Dictionary = new Object();
 
 //console.log("i will wait");
@@ -29,10 +29,8 @@ loop = setInterval(() => {
     "ctl00_cph_a_GridViewActivitesNonFacturables_ctl02_ddlProjet"
   );
 
-  //console.log(document.getElementById("ctl00_uprg").style.display == "none")
-  //console.log( selectBU.value !== selectBU[selectBU.options.length -1].value)
   if (
-    document.getElementById("ctl00_uprg").style.display == "none" &&
+    selectProject[selectProject.options.length - 1].value !== "trigger" &&
     selectBU.value !== selectBU[selectBU.options.length - 1].value
   ) {
     if (!init) {
@@ -55,8 +53,16 @@ loop = setInterval(() => {
     selectBU.dispatchEvent(event);
 
     console.log(BU_Project_Dictionary);
+    localStorage.setItem(
+      "project fix teweb",
+      JSON.stringify(BU_Project_Dictionary)
+    );
+
+    var trigger = document.createElement("option");
+    trigger.value = "trigger";
+    selectProject.add(trigger);
   }
-});
+}, 50);
 
 function getProjects() {
   tempo1 = true;
