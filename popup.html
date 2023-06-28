@@ -2,17 +2,24 @@
 <script type="module" src="./popup.js"></script>
 <html>
   <meta charset="UTF-8" />
-  <body style="display: block">
+  <body style="display: flex; flex-direction: column">
     <div
       id="activityContainer"
       style="display: flex; justify-content: space-around"
     >
-      <button id="buttonFacturable">Facturable</button>
-      <button id="buttonNonFacturable">Facturable</button>
-      <button id="buttonAbsence">NonFacturable</button>
+      <button id="buttonFacturable" onclick="testFunction">Facturable</button>
+      <button id="buttonNonFacturable">Non Facturable</button>
+      <button id="buttonAbsence">Abscences</button>
     </div>
-    <input type="text" placeholder="filter" id="filterInput" style=" margin:
-    15px 0px" >
-    <select id="projectList" size="20"></select>
+    <input
+      type="text"
+      placeholder="filter"
+      id="filterInput"
+      style="margin: 15px 0px"
+    />
+    <select id="projectList" size="20" style="width: 450px"></select>
+    <div style="display: flex; justify-content: center; margin-top: 15px">
+      <button id="buttonUpdate"></button>
+    </div>
   </body>
 </html>

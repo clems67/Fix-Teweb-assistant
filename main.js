@@ -2,13 +2,14 @@ chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
   console.log("listener worked ! its response :");
   console.log(response);
   switch (response.responseType) {
-    case "get_projects_facturable":
-    case "get_projects_nonFacturable":
-    case "get_projects_absFormDeleg":
-      console.log("c'et passé dans le get_favorite");
-      const return_obj = GetProjectList(response.responseType);
+    case "get_projects":
+      console.log("c'est passé dans le get_favorite");
+      const return_obj = GetProjectList(response.activityType);
       console.log(JSON.stringify(return_obj));
       sendResponse({ favorites: JSON.stringify(return_obj) });
+      break;
+    case "downloadProjects":
+      downloadProjects(response.activityType);
       break;
     default:
       console.log("ERREUR C'EST PASSÉ DANS LE DEFAULT : main.js adListener");
@@ -18,14 +19,14 @@ chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
 function GetProjectList(activite) {
   let activiteLocalStorage;
   switch (activite) {
-    case "get_projects_facturable":
+    case "facturable":
       activiteLocalStorage = "project fix teweb - facturable";
       break;
-    case "get_projects_nonFacturable":
-      activiteLocalStorage = "project fix teweb - non facturable";
+    case "nonFacturable":
+      activiteLocalStorage = "project fix teweb - nonFacturable";
       break;
-    case "get_projects_absFormDeleg":
-      activiteLocalStorage = "project fix teweb - absence";
+    case "absFormDeleg":
+      activiteLocalStorage = "project fix teweb - absFormDeleg";
       break;
     default:
       console.log("ERREUR GetFavorits");
@@ -81,10 +82,10 @@ function downloadProjects(activityType) {
 
   button.click();
   wait(1000);
-  loopDownLoad(selectBUname, selectProjectName);
+  loopDownLoad(activityType, selectBUname, selectProjectName);
 }
 
-function loopDownLoad(selectBUname, selectProjectName) {
+function loopDownLoad(activity, selectBUname, selectProjectName) {
   let init = false;
   let iterationBU = 1;
   let BU_Project_Dictionary = new Object();
@@ -118,7 +119,7 @@ function loopDownLoad(selectBUname, selectProjectName) {
 
         console.log(BU_Project_Dictionary);
         localStorage.setItem(
-          "project fix teweb",
+          "project fix teweb - " + activity,
           JSON.stringify(BU_Project_Dictionary)
         );
 
