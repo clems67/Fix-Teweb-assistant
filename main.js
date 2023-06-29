@@ -11,6 +11,9 @@ chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
     case "downloadProjects":
       downloadProjects(response.activityType);
       break;
+    case "stopDownload":
+      stopDownload();
+      break;
     default:
       console.log("ERREUR C'EST PASSÉ DANS LE DEFAULT : main.js adListener");
   }
@@ -130,4 +133,8 @@ function loopDownLoad(activity, selectBUname, selectProjectName) {
     }.bind(selectBUname, selectProjectName),
     50
   );
+}
+
+function stopDownload() {
+  clearInterval(loop);
 }

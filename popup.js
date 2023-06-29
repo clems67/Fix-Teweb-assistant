@@ -1,43 +1,45 @@
+let isDownloading = false;
+
 window.onload = function () {
   let filterInput = document.getElementById("filterInput");
-  let buttonUpdate = document.getElementById("buttonUpdate");
   let buttonFacturable = document.getElementById("buttonFacturable");
   let buttonNonFacturable = document.getElementById("buttonNonFacturable");
   let buttonAbsence = document.getElementById("buttonAbsence");
+  let buttonUpdate = document.getElementById("buttonUpdate");
 
   filterInput.addEventListener("input", filterList);
   buttonFacturable.addEventListener("click", GetProjectListFacturable);
   buttonNonFacturable.addEventListener("click", GetProjectListNonFacturable);
   buttonAbsence.addEventListener("click", GetProjectListAbscence);
-  document
-    .getElementById("buttonUpdate")
-    .addEventListener("click", downloadProjects);
+  buttonUpdate.addEventListener("click", uploadOrPause);
+
+  GetProjectListFacturable()
 };
 
 function GetProjectListFacturable() {
   filterInput.value = "";
-  buttonUpdate.textContent = "Charger les projets facturables";
   buttonFacturable.style = "border-width: 5px; border-color: green;";
   buttonNonFacturable.style = "border-width: 2px; border-color: black;";
   buttonAbsence.style = "border-width: 2px; border-color: black;";
+  buttonUpdate.textContent = "Charger les projets facturables";
   return GetProjectList("facturable");
 }
 
 function GetProjectListNonFacturable() {
   filterInput.value = "";
-  buttonUpdate.textContent = "Charger les projets non facturables";
   buttonFacturable.style = "border-width: 2px; border-color: black;";
   buttonNonFacturable.style = "border-width: 5px; border-color: green;";
   buttonAbsence.style = "border-width: 2px; border-color: black;";
+  buttonUpdate.textContent = "Charger les projets non facturables";
   return GetProjectList("nonFacturable");
 }
 
 function GetProjectListAbscence() {
   filterInput.value = "";
-  buttonUpdate.textContent = "Charger les projets absence";
   buttonFacturable.style = "border-width: 2px; border-color: black;";
   buttonNonFacturable.style = "border-width: 2px; border-color: black;";
   buttonAbsence.style = "border-width: 5px; border-color: green;";
+  buttonUpdate.textContent = "Charger les projets absence";
   return GetProjectList("absFormDeleg");
 }
 
@@ -92,6 +94,28 @@ function filterList() {
     var include = option.text.toLowerCase().includes(filter.toLowerCase());
     option.style.display = include ? "list-item" : "none";
   });
+}
+
+function uploadOrPause(){
+  if(isDownloading){
+    pauseDownload()
+    isDownloading = false
+  }else{
+    downloadProjects()
+    isDownloading = true
+  }
+}
+
+function pauseDownload(){
+  (async () => {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      lastFocusedWindow: true,
+    });
+    const response = await chrome.tabs.sendMessage(tab.id, {
+      responseType: "stopDownload"
+    });
+  })();
 }
 
 function downloadProjects() {
