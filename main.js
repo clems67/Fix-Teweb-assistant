@@ -91,7 +91,10 @@ function downloadProjects(activityType) {
 function loopDownLoad(activity, selectBUname, selectProjectName) {
   let init = false;
   let iterationBU = 1;
-  let BU_Project_Dictionary = new Object();
+  let BU_Project_Dictionary = JSON.parse(localStorage.getItem("project fix teweb - " + activity));
+  if (BU_Project_Dictionary === null){
+    BU_Project_Dictionary = new Object();
+  }
   loop = setInterval(
     function () {
       const selectBU = document.getElementById(selectBUname);
@@ -137,4 +140,13 @@ function loopDownLoad(activity, selectBUname, selectProjectName) {
 
 function stopDownload() {
   clearInterval(loop);
+}
+
+function checkIfValueIsInJson(json, value){
+  for(var key in json){
+    if(key === value){
+      return true
+    }
+  }
+  return false
 }
