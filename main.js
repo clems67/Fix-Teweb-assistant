@@ -91,39 +91,37 @@ function downloadProjects(activityType) {
 function loopDownLoad(activity, selectBUname, selectProjectName) {
   let init = false;
   let iterationBU = 1;
-  let BU_Project_Dictionary = JSON.parse(localStorage.getItem("project fix teweb - " + activity));
-  if (BU_Project_Dictionary === null){
+  let BU_Project_Dictionary = JSON.parse(
+    localStorage.getItem("project fix teweb - " + activity)
+  );
+  if (BU_Project_Dictionary === null) {
     BU_Project_Dictionary = new Object();
   }
   loop = setInterval(
     function () {
       const selectBU = document.getElementById(selectBUname);
       const selectProject = document.getElementById(selectProjectName);
-      if (selectBU.value === selectBU[selectBU.options.length - 1].value) {
-        clearInterval(loop);
-      } else if (
-        selectProject[selectProject.options.length - 1].value !== "trigger"
-      ) {
-        if (!init) {
+      if (selectProject[selectProject.options.length - 1].value !== "trigger") {
+        while (isValueInJson(selectBU.value, BU_Project_Dictionary)) {
+          if (selectBU.value === selectBU[selectBU.options.length - 1].value) {
+            clearInterval(loop);
+          }
+          iterationBU = iterationBU + 1;
           selectBU.value = selectBU[iterationBU].value;
-          const event = new Event("change");
-          selectBU.dispatchEvent(event);
-          init = true;
         }
 
+        selectBU.value = selectBU[iterationBU].value;
+        const event = new Event("change");
+        selectBU.dispatchEvent(event);
         console.log("iterationBU", iterationBU);
 
         for (var i = 1; i < selectProject.options.length; i++) {
           BU_Project_Dictionary[selectProject[i].text] =
             selectBU[iterationBU].value;
         }
-
+        console.log(selectBU[iterationBU].value);
         iterationBU = iterationBU + 1;
-        selectBU.value = selectBU[iterationBU].value;
-        const event = new Event("change");
-        selectBU.dispatchEvent(event);
 
-        console.log(BU_Project_Dictionary);
         localStorage.setItem(
           "project fix teweb - " + activity,
           JSON.stringify(BU_Project_Dictionary)
@@ -142,11 +140,11 @@ function stopDownload() {
   clearInterval(loop);
 }
 
-function checkIfValueIsInJson(json, value){
-  for(var key in json){
-    if(key === value){
-      return true
-    }
+function isValueInJson(value, json) {
+  var values = Object.values(json);
+  if (values.includes(value)) {
+    console.log(value + " is already in json");
+    return true;
   }
-  return false
+  return false;
 }

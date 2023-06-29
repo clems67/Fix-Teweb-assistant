@@ -14,7 +14,9 @@ window.onload = function () {
   buttonAbsence.addEventListener("click", GetProjectListAbscence);
   buttonUpdate.addEventListener("click", uploadOrPause);
 
-  GetProjectListFacturable();
+  if(!isDownloading){
+    GetProjectListFacturable();
+  }
 };
 
 function GetProjectListFacturable() {
