@@ -1,6 +1,11 @@
+let isDownloading = false;
+let activitySelected;
+
 chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
-  console.log("listener worked ! its response :");
-  console.log(response);
+  if (response.responseType !== "isDownloading") {
+    console.log("listener worked ! its response :");
+    console.log(response);
+  }
   switch (response.responseType) {
     case "get_projects":
       console.log("c'est passé dans le get_favorite");
@@ -8,10 +13,19 @@ chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
       sendResponse({ favorites: JSON.stringify(return_obj) });
       break;
     case "downloadProjects":
+      isDownloading = true;
+      activitySelected = response.activityType;
       downloadProjects(response.activityType);
       break;
     case "stopDownload":
-      stopDownload();
+      isDownloading = false;
+      clearInterval(loop);
+      break;
+    case "isDownloading":
+      sendResponse({
+        isDownloading: isDownloading,
+        activityType: activitySelected,
+      });
       break;
     default:
       console.log("ERREUR C'EST PASSÉ DANS LE DEFAULT : main.js adListener");
@@ -115,7 +129,7 @@ function loopDownLoad(activity, selectBUname, selectProjectName) {
           clearInterval(loop);
         }
         if (isValueAlreadyDownloaded(selectBU.value, projectsDownloaded)) {
-          while(isValueAlreadyDownloaded(selectBU.value, projectsDownloaded)){
+          while (isValueAlreadyDownloaded(selectBU.value, projectsDownloaded)) {
             iterationBU = iterationBU + 1;
             selectBU.value = selectBU[iterationBU].value;
           }
@@ -128,6 +142,7 @@ function loopDownLoad(activity, selectBUname, selectProjectName) {
           }
           console.log(selectBU[iterationBU].value);
           projectsDownloaded.push(selectBU[iterationBU].value);
+          sendIteration(iterationBU, selectBU.options.length, activity);
           iterationBU = iterationBU + 1;
 
           localStorage.setItem(
@@ -143,7 +158,6 @@ function loopDownLoad(activity, selectBUname, selectProjectName) {
           const event = new Event("change");
           selectBU.dispatchEvent(event);
           console.log("iterationBU", iterationBU);
-
         }
         var trigger = document.createElement("option");
         trigger.value = "trigger";
@@ -154,14 +168,17 @@ function loopDownLoad(activity, selectBUname, selectProjectName) {
   );
 }
 
-function stopDownload() {
-  clearInterval(loop);
-}
-
 function isValueAlreadyDownloaded(value, array) {
   if (array.includes(value)) {
     console.log(value + " is already in json");
     return true;
   }
   return false;
+}
+
+function sendIteration(iteration, nbBU, activity) {
+  chrome.runtime.sendMessage({
+    iteration: iteration,
+    nbBU: nbBU,
+  });
 }

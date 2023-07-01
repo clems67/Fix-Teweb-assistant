@@ -1,6 +1,3 @@
-let isDownloading = false;
-let activitySelected = "facturable"
-
 window.onload = function () {
   let filterInput = document.getElementById("filterInput");
   let buttonFacturable = document.getElementById("buttonFacturable");
@@ -14,39 +11,90 @@ window.onload = function () {
   buttonAbsence.addEventListener("click", GetProjectListAbscence);
   buttonUpdate.addEventListener("click", uploadOrPause);
 
-  if(!isDownloading){
-    GetProjectListFacturable();
-  }
+  chrome.runtime.onMessage.addListener(function (
+    response,
+    sender,
+    sendResponse
+  ) {
+    console.log("listener worked ! its response :");
+    console.log(response);
+    document.getElementById("downloadProgress").textContent =
+      response.iteration + " / " + response.nbBU;
+  });
 };
 
-function GetProjectListFacturable() {
-   activitySelected = "facturable"
-  filterInput.value = "";
-  buttonFacturable.style = "border-width: 5px; border-color: green;";
+let isDownloading;
+let activitySelected;
+
+checkIfDownloading = setInterval(function () {
+  isItDownloading();
+  if (isDownloading) {
+    changeActivitySelected(activitySelected);
+    filterInput.disabled = true;
+    buttonFacturable.disabled = true;
+    buttonNonFacturable.disabled = true;
+    buttonAbsence.disabled = true;
+    buttonUpdate.textContent = "mettre en pause le chargement";
+  }
+}, 200);
+
+function isItDownloading() {
+  (async () => {
+    const [tab] = await chrome.tabs.query({
+      active: true,
+      lastFocusedWindow: true,
+    });
+    const response = await chrome.tabs.sendMessage(tab.id, {
+      responseType: "isDownloading",
+    });
+    isDownloading = response.isDownloading;
+    activitySelected = response.activityType;
+  })();
+}
+
+function changeActivitySelected(activity) {
+  activitySelected = activity;
+  buttonFacturable.style = "border-width: 2px; border-color: black;";
   buttonNonFacturable.style = "border-width: 2px; border-color: black;";
   buttonAbsence.style = "border-width: 2px; border-color: black;";
+  switch (activity) {
+    case "facturable":
+      buttonFacturable.style = "border-width: 5px; border-color: green;";
+      break;
+    case "nonFacturable":
+      buttonNonFacturable.style = "border-width: 5px; border-color: green;";
+      break;
+    case "absFormDeleg":
+      buttonAbsence.style = "border-width: 5px; border-color: green;";
+      break;
+  }
+}
+
+function GetProjectListFacturable(getProjects = true) {
+  changeActivitySelected("facturable");
+  filterInput.value = "";
   buttonUpdate.textContent = "Charger les projets facturables";
-  return GetProjectList("facturable");
+  if (getProjects) {
+    return GetProjectList("facturable");
+  }
 }
 
-function GetProjectListNonFacturable() {
-   activitySelected = "nonFacturable"
+function GetProjectListNonFacturable(getProjects = true) {
+  changeActivitySelected("nonFacturable");
   filterInput.value = "";
-  buttonFacturable.style = "border-width: 2px; border-color: black;";
-  buttonNonFacturable.style = "border-width: 5px; border-color: green;";
-  buttonAbsence.style = "border-width: 2px; border-color: black;";
   buttonUpdate.textContent = "Charger les projets non facturables";
-  return GetProjectList("nonFacturable");
+  if (getProjects) {
+    return GetProjectList("nonFacturable");
+  }
 }
 
-function GetProjectListAbscence() {
-   activitySelected = "absFormDeleg"
+function GetProjectListAbscence(getProjects = true) {
+  changeActivitySelected("absFormDeleg");
   filterInput.value = "";
-  buttonFacturable.style = "border-width: 2px; border-color: black;";
-  buttonNonFacturable.style = "border-width: 2px; border-color: black;";
-  buttonAbsence.style = "border-width: 5px; border-color: green;";
   buttonUpdate.textContent = "Charger les projets absence";
-  return GetProjectList("absFormDeleg");
+  if (getProjects) {
+    return GetProjectList("absFormDeleg");
+  }
 }
 
 function GetProjectList(activity) {
@@ -109,16 +157,21 @@ function uploadOrPause() {
     buttonNonFacturable.disabled = false;
     buttonAbsence.disabled = false;
     isDownloading = false;
-    if(activitySelected === "facturable"){GetProjectListFacturable()}
-    if(activitySelected === "nonFacturable"){GetProjectListNonFacturable()}
-    if(activitySelected === "absFormDeleg"){GetProjectListAbscence()}
+    if (activitySelected === "facturable") {
+      GetProjectListFacturable();
+    }
+    if (activitySelected === "nonFacturable") {
+      GetProjectListNonFacturable();
+    }
+    if (activitySelected === "absFormDeleg") {
+      GetProjectListAbscence();
+    }
   } else {
-    console.log(buttonAbsence);
     filterInput.disabled = true;
     buttonFacturable.disabled = true;
     buttonNonFacturable.disabled = true;
     buttonAbsence.disabled = true;
-    buttonUpdate.textContent = "mettre en pause le chargement"
+    buttonUpdate.textContent = "mettre en pause le chargement";
     downloadProjects();
     isDownloading = true;
   }
