@@ -61,7 +61,6 @@ function GetProjectList(activity) {
     });
     console.log("response to get favorite list from delete_favorite :");
     const favoriteList = JSON.parse(response.favorites);
-    console.log(favoriteList);
     fillList(favoriteList);
   })();
 }

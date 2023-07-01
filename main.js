@@ -5,7 +5,6 @@ chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
     case "get_projects":
       console.log("c'est passé dans le get_favorite");
       const return_obj = GetProjectList(response.activityType);
-      console.log(JSON.stringify(return_obj));
       sendResponse({ favorites: JSON.stringify(return_obj) });
       break;
     case "downloadProjects":
@@ -36,8 +35,6 @@ function GetProjectList(activite) {
   }
   let favorits = localStorage.getItem(activiteLocalStorage);
   projectDictionary = JSON.parse(favorits);
-  console.log(favorits);
-  console.log(projectDictionary);
   return projectDictionary;
 }
 
@@ -97,36 +94,57 @@ function loopDownLoad(activity, selectBUname, selectProjectName) {
   if (BU_Project_Dictionary === null) {
     BU_Project_Dictionary = new Object();
   }
+  let projectsDownloaded = JSON.parse(
+    localStorage.getItem("projets downloaded - " + activity)
+  );
+  if (projectsDownloaded === null) {
+    projectsDownloaded = [];
+  }
   loop = setInterval(
     function () {
       const selectBU = document.getElementById(selectBUname);
       const selectProject = document.getElementById(selectProjectName);
-      if (selectProject[selectProject.options.length - 1].value !== "trigger") {
-        while (isValueInJson(selectBU.value, BU_Project_Dictionary)) {
-          if (selectBU.value === selectBU[selectBU.options.length - 1].value) {
-            clearInterval(loop);
-          }
-          iterationBU = iterationBU + 1;
-          selectBU.value = selectBU[iterationBU].value;
-        }
-
+      if (!init) {
         selectBU.value = selectBU[iterationBU].value;
         const event = new Event("change");
         selectBU.dispatchEvent(event);
-        console.log("iterationBU", iterationBU);
-
-        for (var i = 1; i < selectProject.options.length; i++) {
-          BU_Project_Dictionary[selectProject[i].text] =
-            selectBU[iterationBU].value;
+        init = true;
+      }
+      if (selectProject[selectProject.options.length - 1].value !== "trigger") {
+        if (selectBU.value === selectBU[selectBU.options.length - 1].value) {
+          clearInterval(loop);
         }
-        console.log(selectBU[iterationBU].value);
-        iterationBU = iterationBU + 1;
+        if (isValueAlreadyDownloaded(selectBU.value, projectsDownloaded)) {
+          while(isValueAlreadyDownloaded(selectBU.value, projectsDownloaded)){
+            iterationBU = iterationBU + 1;
+            selectBU.value = selectBU[iterationBU].value;
+          }
+          const event = new Event("change");
+          selectBU.dispatchEvent(event);
+        } else {
+          for (var i = 1; i < selectProject.options.length; i++) {
+            BU_Project_Dictionary[selectProject[i].text] =
+              selectBU[iterationBU].value;
+          }
+          console.log(selectBU[iterationBU].value);
+          projectsDownloaded.push(selectBU[iterationBU].value);
+          iterationBU = iterationBU + 1;
 
-        localStorage.setItem(
-          "project fix teweb - " + activity,
-          JSON.stringify(BU_Project_Dictionary)
-        );
+          localStorage.setItem(
+            "project fix teweb - " + activity,
+            JSON.stringify(BU_Project_Dictionary)
+          );
+          localStorage.setItem(
+            "projets downloaded - " + activity,
+            JSON.stringify(projectsDownloaded)
+          );
 
+          selectBU.value = selectBU[iterationBU].value;
+          const event = new Event("change");
+          selectBU.dispatchEvent(event);
+          console.log("iterationBU", iterationBU);
+
+        }
         var trigger = document.createElement("option");
         trigger.value = "trigger";
         selectProject.add(trigger);
@@ -140,9 +158,8 @@ function stopDownload() {
   clearInterval(loop);
 }
 
-function isValueInJson(value, json) {
-  var values = Object.values(json);
-  if (values.includes(value)) {
+function isValueAlreadyDownloaded(value, array) {
+  if (array.includes(value)) {
     console.log(value + " is already in json");
     return true;
   }
