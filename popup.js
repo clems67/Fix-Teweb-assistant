@@ -35,6 +35,8 @@ checkIfDownloading = setInterval(function () {
     buttonNonFacturable.disabled = true;
     buttonAbsence.disabled = true;
     buttonUpdate.textContent = "mettre en pause le chargement";
+  } else {
+    document.getElementById("downloadProgress").textContent = "";
   }
 }, 200);
 
@@ -144,8 +146,11 @@ function filterList() {
   var optionCollection = Array.from(select.options);
 
   optionCollection.forEach(function (option) {
-    var include = option.text.toLowerCase().includes(filter.toLowerCase());
-    option.style.display = include ? "list-item" : "none";
+    option.style.display = option.text
+      .toLowerCase()
+      .includes(filter.toLowerCase())
+      ? "list-item"
+      : "none";
   });
 }
 

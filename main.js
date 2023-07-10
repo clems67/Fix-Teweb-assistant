@@ -15,7 +15,7 @@ chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
     case "downloadProjects":
       isDownloading = true;
       activitySelected = response.activityType;
-      downloadProjects(response.activityType);
+      downloadAllProjects(response.activityType);
       break;
     case "stopDownload":
       isDownloading = false;
@@ -63,18 +63,27 @@ function wait(ms) {
   } while (d2 - d < ms);
 }
 
-function downloadProjects(activityType) {
+function downloadProjectsFromOneBU(activityType, BU) {}
+
+function downloadAllProjects(activityType) {
+  let table;
   let selectBUname;
   let selectProjectName;
   let button;
   switch (activityType) {
     case "facturable":
+      table = document.getElementById(
+        "ctl00_cph_a_GridViewActivitesFacturables"
+      );
       selectBUname = "ctl00_cph_a_GridViewActivitesFacturables_ctl02_ddlCodeBU";
       selectProjectName =
         "ctl00_cph_a_GridViewActivitesFacturables_ctl02_ddlProjet";
       button = document.getElementById("ctl00_cph_a_btnAjoutDirect");
       break;
     case "nonFacturable":
+      table = document.getElementById(
+        "ctl00_cph_a_GridViewActivitesNonFacturables"
+      );
       selectBUname =
         "ctl00_cph_a_GridViewActivitesNonFacturables_ctl02_ddlCodeBU";
       selectProjectName =
@@ -83,6 +92,7 @@ function downloadProjects(activityType) {
       button = document.getElementById("ctl00_cph_a_btnAjoutIndirect");
       break;
     case "absFormDeleg":
+      table = document.getElementById("ctl00_cph_a_GridViewAbsenceFormation");
       selectBUname = "ctl00_cph_a_GridViewAbsenceFormation_ctl02_ddlCodeBU";
       selectProjectName =
         "ctl00_cph_a_GridViewAbsenceFormation_ctl02_ddlProjet";
@@ -90,12 +100,14 @@ function downloadProjects(activityType) {
       break;
     default:
       console.log(
-        "ERREUR C'EST PASSÉ DANS LE DEFAULT : downloadProjects.js downloadProjects"
+        "ERREUR C'EST PASSÉ DANS LE DEFAULT : main.js downloadAllProjects"
       );
   }
 
-  button.click();
-  wait(1000);
+  if (table.rows.length < 2) {
+    button.click();
+  }
+  //wait(1000);
   loopDownLoad(activityType, selectBUname, selectProjectName);
 }
 
