@@ -8,24 +8,20 @@ chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
   }
   switch (response.responseType) {
     case "get_projects":
-      console.log("c'est passé dans le get_favorite");
       const return_obj = GetProjectList(response.activityType);
-      sendResponse({ favorites: JSON.stringify(return_obj) });
+      sendResponse({ projectList: JSON.stringify(return_obj) });
       break;
-    case "downloadProjects":
+    case "downloadAllProjects":
       isDownloading = true;
       activitySelected = response.activityType;
-      downloadAllProjects(response.activityType);
+      downloadProjects(true, response.activityType);
+      break;
+    case "downloadOneProject":
+      downloadProjects(false, response.activityType, response.BU);
       break;
     case "stopDownload":
       isDownloading = false;
       clearInterval(loop);
-      break;
-    case "isDownloading":
-      sendResponse({
-        isDownloading: isDownloading,
-        activityType: activitySelected,
-      });
       break;
     default:
       console.log("ERREUR C'EST PASSÉ DANS LE DEFAULT : main.js adListener");
@@ -63,27 +59,23 @@ function wait(ms) {
   } while (d2 - d < ms);
 }
 
-function downloadProjectsFromOneBU(activityType, BU) {}
-
-function downloadAllProjects(activityType) {
+function downloadProjects(downloadAllProjects, activityType, BU = null) {
   let table;
   let selectBUname;
   let selectProjectName;
   let button;
   switch (activityType) {
     case "facturable":
-      table = document.getElementById(
-        "ctl00_cph_a_GridViewActivitesFacturables"
-      );
+      table = "ctl00_cph_a_GridViewActivitesFacturables";
+
       selectBUname = "ctl00_cph_a_GridViewActivitesFacturables_ctl02_ddlCodeBU";
       selectProjectName =
         "ctl00_cph_a_GridViewActivitesFacturables_ctl02_ddlProjet";
       button = document.getElementById("ctl00_cph_a_btnAjoutDirect");
       break;
     case "nonFacturable":
-      table = document.getElementById(
-        "ctl00_cph_a_GridViewActivitesNonFacturables"
-      );
+      table = "ctl00_cph_a_GridViewActivitesNonFacturables";
+
       selectBUname =
         "ctl00_cph_a_GridViewActivitesNonFacturables_ctl02_ddlCodeBU";
       selectProjectName =
@@ -92,7 +84,7 @@ function downloadAllProjects(activityType) {
       button = document.getElementById("ctl00_cph_a_btnAjoutIndirect");
       break;
     case "absFormDeleg":
-      table = document.getElementById("ctl00_cph_a_GridViewAbsenceFormation");
+      table = "ctl00_cph_a_GridViewAbsenceFormation";
       selectBUname = "ctl00_cph_a_GridViewAbsenceFormation_ctl02_ddlCodeBU";
       selectProjectName =
         "ctl00_cph_a_GridViewAbsenceFormation_ctl02_ddlProjet";
@@ -100,15 +92,92 @@ function downloadAllProjects(activityType) {
       break;
     default:
       console.log(
-        "ERREUR C'EST PASSÉ DANS LE DEFAULT : main.js downloadAllProjects"
+        "ERREUR C'EST PASSÉ DANS LE DEFAULT : main.js downloadProjects"
       );
   }
 
-  if (table.rows.length < 2) {
+  if (document.getElementById(table).rows.length < 2) {
     button.click();
   }
   //wait(1000);
-  loopDownLoad(activityType, selectBUname, selectProjectName);
+  if (downloadAllProjects) {
+    loopDownLoad(activityType, selectBUname, selectProjectName);
+  } else {
+    downloadProjectsOneBU(
+      activityType,
+      BU,
+      selectBUname,
+      selectProjectName,
+      table
+    );
+  }
+}
+
+function downloadProjectsOneBU(
+  activity,
+  BU,
+  selectBUname,
+  selectProjectName,
+  table
+) {
+  let initTrigger = false;
+  loopWait = setInterval(
+    function () {
+      if (document.getElementById(table).rows.length >= 2) {
+        //setup
+        const selectBU = document.getElementById(selectBUname);
+        const selectProject = document.getElementById(selectProjectName);
+        let BU_Project_Dictionary = JSON.parse(
+          localStorage.getItem("project fix teweb - " + activity)
+        );
+        if (BU_Project_Dictionary === null) {
+          BU_Project_Dictionary = new Object();
+        }
+        let projectsDownloaded = JSON.parse(
+          localStorage.getItem("projets downloaded - " + activity)
+        );
+        if (projectsDownloaded === null) {
+          projectsDownloaded = [];
+        }
+        if (!initTrigger) {
+          initTrigger = true;
+          var trigger = document.createElement("option");
+          trigger.value = "trigger";
+          selectProject.add(trigger);
+          selectBU.value = BU;
+          if(selectBU.value !== BU){
+            alert("Le BU que vous avez saisi est incorrect")
+            clearInterval(loopWait)
+          }
+          selectBU.dispatchEvent(new Event("change"));
+        } else if (
+          selectProject[selectProject.options.length - 1].value !== "trigger"
+        ) {
+          let alertMessage = "Liste des projets téléchargé :";
+          for (var i = 1; i < selectProject.options.length; i++) {
+            BU_Project_Dictionary[selectProject[i].text] = BU;
+            alertMessage += "\n- " + selectProject[i].text;
+          }
+          //store
+          if (!projectsDownloaded.includes(BU)) {
+            projectsDownloaded.push(BU);
+          }
+          localStorage.setItem(
+            "project fix teweb - " + activity,
+            JSON.stringify(BU_Project_Dictionary)
+          );
+          localStorage.setItem(
+            "projets downloaded - " + activity,
+            JSON.stringify(projectsDownloaded)
+          );
+          alert(alertMessage);
+
+          clearInterval(loopWait);
+        }
+      }
+    }.bind(activity, BU, selectBUname, selectProjectName),
+    50
+  );
 }
 
 function loopDownLoad(activity, selectBUname, selectProjectName) {
@@ -132,8 +201,7 @@ function loopDownLoad(activity, selectBUname, selectProjectName) {
       const selectProject = document.getElementById(selectProjectName);
       if (!init) {
         selectBU.value = selectBU[iterationBU].value;
-        const event = new Event("change");
-        selectBU.dispatchEvent(event);
+        selectBU.dispatchEvent(new Event("change"));
         init = true;
       }
       if (selectProject[selectProject.options.length - 1].value !== "trigger") {
@@ -145,8 +213,7 @@ function loopDownLoad(activity, selectBUname, selectProjectName) {
             iterationBU = iterationBU + 1;
             selectBU.value = selectBU[iterationBU].value;
           }
-          const event = new Event("change");
-          selectBU.dispatchEvent(event);
+          selectBU.dispatchEvent(new Event("change"));
         } else {
           for (var i = 1; i < selectProject.options.length; i++) {
             BU_Project_Dictionary[selectProject[i].text] =
@@ -167,8 +234,7 @@ function loopDownLoad(activity, selectBUname, selectProjectName) {
           );
 
           selectBU.value = selectBU[iterationBU].value;
-          const event = new Event("change");
-          selectBU.dispatchEvent(event);
+          selectBU.dispatchEvent(new Event("change"));
           console.log("iterationBU", iterationBU);
         }
         var trigger = document.createElement("option");
@@ -176,7 +242,7 @@ function loopDownLoad(activity, selectBUname, selectProjectName) {
         selectProject.add(trigger);
       }
     }.bind(selectBUname, selectProjectName),
-    50
+    50 //loop every 50ms
   );
 }
 
@@ -188,7 +254,7 @@ function isValueAlreadyDownloaded(value, array) {
   return false;
 }
 
-function sendIteration(iteration, nbBU, activity) {
+function sendIteration(iteration, nbBU) {
   chrome.runtime.sendMessage({
     iteration: iteration,
     nbBU: nbBU,

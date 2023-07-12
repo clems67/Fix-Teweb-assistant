@@ -7,7 +7,7 @@
       id="activityContainer"
       style="display: flex; justify-content: space-around"
     >
-      <button id="buttonFacturable" onclick="testFunction">Facturable</button>
+      <button id="buttonFacturable">Facturable</button>
       <button id="buttonNonFacturable">Non Facturable</button>
       <button id="buttonAbsence">Abscences</button>
     </div>
@@ -19,8 +19,11 @@
     />
     <select id="projectList" size="20" style="width: 450px"></select>
     <div style="display: flex; justify-content: center; margin-top: 15px">
-      <button id="buttonUpdate"></button>
+      <button id="buttonUpdateAll">Sélectionnez une activité</button>
     </div>
     <p id="downloadProgress" style="display: flex; justify-content: center"></p>
+    <p>Télécharger les projets d'un BU :</p>
+    <input id="inputBU" type="text" placeholder="code BU"/>
+    <button id="buttonUpdateOneBU">Télécharger</button>
   </body>
 </html>
