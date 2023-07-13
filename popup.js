@@ -11,7 +11,7 @@ window.onload = function () {
   buttonFacturable.addEventListener("click", GetProjectListFacturable);
   buttonNonFacturable.addEventListener("click", GetProjectListNonFacturable);
   buttonAbsence.addEventListener("click", GetProjectListAbscence);
-  buttonUpdateAll.addEventListener("click", uploadOrPause);
+  buttonUpdateAll.addEventListener("click", downloadProjects);
   buttonUpdateOneBU.addEventListener("click", updateBU);
 
   chrome.runtime.onMessage.addListener(function (
@@ -19,30 +19,12 @@ window.onload = function () {
     sender,
     sendResponse
   ) {
-    console.log("listener worked ! its response :");
-    console.log(response);
+    //console.log("listener worked ! its response :");
+    //console.log(response);
     document.getElementById("downloadProgress").textContent =
       response.iteration + " / " + response.nbBU;
   });
 };
-
-let activitySelected;
-
-
-if (isItDownloading()) {
-  changeActivitySelected(activitySelected);
-  filterInput.disabled = true;
-  buttonFacturable.disabled = true;
-  buttonNonFacturable.disabled = true;
-  buttonAbsence.disabled = true;
-  buttonUpdateAll.textContent = "mettre en pause le chargement";
-} else {
-  document.getElementById("downloadProgress").textContent = "";
-}
-
-function isItDownloading() {
-  return localStorage.getItem("isItDownloading") === "true";
-}
 
 function GetProjectListFacturable(getProjects = true) {
   changeActivitySelected("facturable");
@@ -69,11 +51,10 @@ function GetProjectListAbscence(getProjects = true) {
   if (getProjects) {
     return GetProjectList("absFormDeleg");
   }
-  console.log("activitySelected", activitySelected);
 }
 
 function changeActivitySelected(activity) {
-  activitySelected = activity;
+  localStorage.setItem("activitySelected", activity);
   buttonFacturable.style = "border-width: 2px; border-color: black;";
   buttonNonFacturable.style = "border-width: 2px; border-color: black;";
   buttonAbsence.style = "border-width: 2px; border-color: black;";
@@ -144,66 +125,28 @@ function filterList() {
   });
 }
 
-function uploadOrPause() {
-  if (isItDownloading()) {
-    localStorage.setItem("isItDownloading", "false");
-    pauseDownload();
-    filterInput.disabled = false;
-    buttonFacturable.disabled = false;
-    buttonNonFacturable.disabled = false;
-    buttonAbsence.disabled = false;
-    if (activitySelected === "facturable") {
-      GetProjectListFacturable();
-    }
-    if (activitySelected === "nonFacturable") {
-      GetProjectListNonFacturable();
-    }
-    if (activitySelected === "absFormDeleg") {
-      GetProjectListAbscence();
-    }
-  } else {
-    localStorage.setItem("isItDownloading", "true");
-    filterInput.disabled = true;
-    buttonFacturable.disabled = true;
-    buttonNonFacturable.disabled = true;
-    buttonAbsence.disabled = true;
-    buttonUpdateAll.textContent = "mettre en pause le chargement";
-    downloadProjects();
-    isDownloading = true;
+function downloadProjects() {
+  var dialog = confirm(
+    "Attention aux épileptiques !!!\nPour mettre en pause le téléchargement, il vous suffit de rafraichir la page (CTRL + R ou F5).\nL'extension sauvegarde automatiquement en continue donc pas de soucis si le téléchargement est interrompu, il reprendra là où il s'était arrêté."
+  );
+  if (dialog) {
+    chrome.tabs.query({}, function (tabs) {
+      tabs.forEach(function (tab) {
+        chrome.tabs.sendMessage(tab.id, {
+          responseType: "downloadAllProjects",
+          activityType: whichActivityIsSelected(),
+        });
+      });
+    });
   }
 }
 
-function pauseDownload() {
-  (async () => {
-    const [tab] = await chrome.tabs.query({
-      active: true,
-      lastFocusedWindow: true,
-    });
-    const response = await chrome.tabs.sendMessage(tab.id, {
-      responseType: "stopDownload",
-    });
-  })();
-}
-
-function downloadProjects() {
-  let activity = whichActivityIsSelected();
-  chrome.tabs.query({}, function (tabs) {
-    tabs.forEach(function (tab) {
-      chrome.tabs.sendMessage(tab.id, {
-        responseType: "downloadAllProjects",
-        activityType: activity,
-      });
-    });
-  });
-}
-
 function updateBU() {
-  console.log("activitySelected", activitySelected);
   chrome.tabs.query({}, function (tabs) {
     tabs.forEach(function (tab) {
       chrome.tabs.sendMessage(tab.id, {
         responseType: "downloadOneProject",
-        activityType: activitySelected,
+        activityType: whichActivityIsSelected(),
         BU: inputBU.value,
       });
     });
@@ -211,15 +154,5 @@ function updateBU() {
 }
 
 function whichActivityIsSelected() {
-  let activity;
-  if (buttonFacturable.style.borderColor === "green") {
-    activity = "facturable";
-  }
-  if (buttonNonFacturable.style.borderColor === "green") {
-    activity = "nonFacturable";
-  }
-  if (buttonAbsence.style.borderColor === "green") {
-    activity = "absFormDeleg";
-  }
-  return activity;
+  return localStorage.getItem("activitySelected");
 }

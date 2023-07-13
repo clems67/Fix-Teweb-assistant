@@ -1,6 +1,3 @@
-let isDownloading = false;
-let activitySelected;
-
 chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
   if (response.responseType !== "isDownloading") {
     console.log("listener worked ! its response :");
@@ -12,16 +9,10 @@ chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
       sendResponse({ projectList: JSON.stringify(return_obj) });
       break;
     case "downloadAllProjects":
-      isDownloading = true;
-      activitySelected = response.activityType;
       downloadProjects(true, response.activityType);
       break;
     case "downloadOneProject":
       downloadProjects(false, response.activityType, response.BU);
-      break;
-    case "stopDownload":
-      isDownloading = false;
-      clearInterval(loop);
       break;
     default:
       console.log("ERREUR C'EST PASSÉ DANS LE DEFAULT : main.js adListener");
@@ -145,9 +136,9 @@ function downloadProjectsOneBU(
           trigger.value = "trigger";
           selectProject.add(trigger);
           selectBU.value = BU;
-          if(selectBU.value !== BU){
-            alert("Le BU que vous avez saisi est incorrect")
-            clearInterval(loopWait)
+          if (selectBU.value !== BU) {
+            alert("Le BU que vous avez saisi est incorrect");
+            clearInterval(loopWait);
           }
           selectBU.dispatchEvent(new Event("change"));
         } else if (
