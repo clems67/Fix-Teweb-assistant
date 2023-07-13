@@ -196,12 +196,19 @@ function loopDownLoad(activity, selectBUname, selectProjectName) {
         init = true;
       }
       if (selectProject[selectProject.options.length - 1].value !== "trigger") {
-        if (selectBU.value === selectBU[selectBU.options.length - 1].value) {
+        if (iterationBU === selectBU.options.length) {
+          alert("Tout les BU on été téléchargés.");
           clearInterval(loop);
+          return;
         }
         if (isValueAlreadyDownloaded(selectBU.value, projectsDownloaded)) {
           while (isValueAlreadyDownloaded(selectBU.value, projectsDownloaded)) {
             iterationBU = iterationBU + 1;
+            if (iterationBU === selectBU.options.length) {
+              alert("Tous les BU on été téléchargés.");
+              clearInterval(loop);
+              return;
+            }
             selectBU.value = selectBU[iterationBU].value;
           }
           selectBU.dispatchEvent(new Event("change"));
