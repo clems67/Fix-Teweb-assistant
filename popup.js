@@ -7,7 +7,6 @@ window.onload = function () {
   let inputBU = document.getElementById("inputBU");
   let buttonUpdateOneBU = document.getElementById("buttonUpdateOneBU");
 
-  filterInput.addEventListener("input", filterList);
   buttonFacturable.addEventListener("click", GetProjectListFacturable);
   buttonNonFacturable.addEventListener("click", GetProjectListNonFacturable);
   buttonAbsence.addEventListener("click", GetProjectListAbscence);
@@ -25,6 +24,35 @@ window.onload = function () {
       response.iteration + " / " + response.nbBU;
   });
 };
+
+let activitySelected = localStorage.getItem("activitySelected");
+if (activitySelected === null) {
+  GetProjectListFacturable();
+} else {
+  switch (activitySelected) {
+    case "facturable":
+      GetProjectListFacturable();
+      break;
+    case "nonFacturable":
+      GetProjectListNonFacturable();
+      break;
+    case "absFormDeleg":
+      GetProjectListAbscence();
+      break;
+    default:
+      console.log("ERREUR C'EST PASSÉ DANS LE DEFAULT : popup.js");
+  }
+}
+
+let oldInput = "";
+filterInput.value = localStorage.getItem("filterInput");
+loop = setInterval(() => {
+  if (filterInput.value !== oldInput) {
+    filterList();
+    oldInput = filterInput.value;
+    localStorage.setItem("filterInput", filterInput.value);
+  }
+}, 500);
 
 function GetProjectListFacturable(getProjects = true) {
   changeActivitySelected("facturable");
