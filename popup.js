@@ -5,11 +5,13 @@ window.onload = function () {
   let buttonAbsence = document.getElementById("buttonAbsence");
   let buttonUpdateAll = document.getElementById("buttonUpdateAll");
   let inputBU = document.getElementById("inputBU");
+  let projectList = document.getElementById("projectList");
   let buttonUpdateOneBU = document.getElementById("buttonUpdateOneBU");
 
   buttonFacturable.addEventListener("click", GetProjectListFacturable);
   buttonNonFacturable.addEventListener("click", GetProjectListNonFacturable);
   buttonAbsence.addEventListener("click", GetProjectListAbscence);
+  projectList.addEventListener("dblclick", insertOption);
   buttonUpdateAll.addEventListener("click", downloadProjects);
   buttonUpdateOneBU.addEventListener("click", updateBU);
 
@@ -46,7 +48,7 @@ if (activitySelected === null) {
 
 let oldInput = "";
 filterInput.value = localStorage.getItem("filterInput");
-loop = setInterval(() => {
+let loopCheckFilterInput = setInterval(() => {
   if (filterInput.value !== oldInput) {
     filterList();
     oldInput = filterInput.value;
@@ -175,7 +177,7 @@ function updateBU() {
       chrome.tabs.sendMessage(tab.id, {
         responseType: "downloadOneProject",
         activityType: whichActivityIsSelected(),
-        BU: inputBU.value,
+        BU: inputBU.value.toUpperCase(),
       });
     });
   });
@@ -183,4 +185,18 @@ function updateBU() {
 
 function whichActivityIsSelected() {
   return localStorage.getItem("activitySelected");
+}
+
+function insertOption() {
+  let valueToSend = projectList[projectList.selectedIndex].value;
+  chrome.tabs.query({}, function (tabs) {
+    tabs.forEach(function (tab) {
+      chrome.tabs.sendMessage(tab.id, {
+        responseType: "insertProject",
+        activityType: whichActivityIsSelected(),
+        BU: valueToSend.substring(0, 8),
+        project: valueToSend.substring(11, valueToSend.length),
+      });
+    });
+  });
 }

@@ -14,6 +14,9 @@ chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
     case "downloadOneProject":
       downloadProjects(false, response.activityType, response.BU);
       break;
+    case "insertProject":
+      insertProject(response.activityType, response.BU, response.project);
+      break;
     default:
       console.log("ERREUR C'EST PASSÉ DANS LE DEFAULT : main.js adListener");
   }
@@ -50,7 +53,7 @@ function wait(ms) {
   } while (d2 - d < ms);
 }
 
-function downloadProjects(downloadAllProjects, activityType, BU = null) {
+function getHtmlValues(activityType) {
   let table;
   let selectBUname;
   let selectProjectName;
@@ -58,48 +61,51 @@ function downloadProjects(downloadAllProjects, activityType, BU = null) {
   switch (activityType) {
     case "facturable":
       table = "ctl00_cph_a_GridViewActivitesFacturables";
-
       selectBUname = "ctl00_cph_a_GridViewActivitesFacturables_ctl02_ddlCodeBU";
       selectProjectName =
         "ctl00_cph_a_GridViewActivitesFacturables_ctl02_ddlProjet";
-      button = document.getElementById("ctl00_cph_a_btnAjoutDirect");
+      button = "ctl00_cph_a_btnAjoutDirect";
       break;
     case "nonFacturable":
       table = "ctl00_cph_a_GridViewActivitesNonFacturables";
-
       selectBUname =
         "ctl00_cph_a_GridViewActivitesNonFacturables_ctl02_ddlCodeBU";
       selectProjectName =
         "ctl00_cph_a_GridViewActivitesNonFacturables_ctl02_ddlProjet";
-
-      button = document.getElementById("ctl00_cph_a_btnAjoutIndirect");
+      button = "ctl00_cph_a_btnAjoutIndirect";
       break;
     case "absFormDeleg":
       table = "ctl00_cph_a_GridViewAbsenceFormation";
       selectBUname = "ctl00_cph_a_GridViewAbsenceFormation_ctl02_ddlCodeBU";
       selectProjectName =
         "ctl00_cph_a_GridViewAbsenceFormation_ctl02_ddlProjet";
-      button = document.getElementById("ctl00_cph_a_btnAjoutAbsences");
+      button = "ctl00_cph_a_btnAjoutAbsences";
       break;
     default:
-      console.log(
-        "ERREUR C'EST PASSÉ DANS LE DEFAULT : main.js downloadProjects"
-      );
+      console.log("ERREUR C'EST PASSÉ DANS LE DEFAULT : main.js htmlValues");
   }
+  return { table, selectBUname, selectProjectName, button };
+}
 
-  if (document.getElementById(table).rows.length < 2) {
-    button.click();
+function downloadProjects(downloadAllProjects, activityType, BU = null) {
+  let htmlValues = getHtmlValues(activityType);
+  if (document.getElementById(htmlValues.table).rows.length < 2) {
+    document.getElementById(htmlValues.button).click();
   }
   //wait(1000);
   if (downloadAllProjects) {
-    loopDownLoad(activityType, selectBUname, selectProjectName);
+    loopDownLoad(
+      activityType,
+      htmlValues.selectBUname,
+      htmlValues.selectProjectName
+    );
   } else {
     downloadProjectsOneBU(
       activityType,
       BU,
-      selectBUname,
-      selectProjectName,
-      table
+      htmlValues.selectBUname,
+      htmlValues.selectProjectName,
+      htmlValues.table
     );
   }
 }
@@ -257,4 +263,44 @@ function sendIteration(iteration, nbBU) {
     iteration: iteration,
     nbBU: nbBU,
   });
+}
+
+function insertProject(activityType, BUtoFill, projectToFill) {
+  let htmlValues = getHtmlValues(activityType);
+  let nbRowsBeforeClick = document.getElementById(htmlValues.table).rows.length;
+  console.log(htmlValues);
+
+  let button = document.getElementById(htmlValues.button);
+  button.click();
+  loopInsert = setInterval(
+    function () {
+      let table = document.getElementById(htmlValues.table);
+      let selectBU = document.getElementById(
+        htmlValues.selectBUname.replace("2", table.rows.length.toString())
+      );
+      let selectProject = document.getElementById(
+        htmlValues.selectProjectName.replace("2", table.rows.length.toString())
+      );
+
+      if (table.rows.length > nbRowsBeforeClick) {
+        if (selectBU.value !== BUtoFill) {
+          var trigger = document.createElement("option");
+          trigger.value = "trigger";
+          selectBU.add(trigger);
+          selectBU.value = BUtoFill;
+          selectBU.dispatchEvent(new Event("change"));
+        } else if (selectBU[selectBU.options.length - 1].value !== "trigger") {
+          var options = Array.from(selectProject.options);
+          options.forEach(function (option) {
+            if (option.text === projectToFill) {
+              selectProject.value = option.value;
+            }
+          });
+          selectProject.dispatchEvent(new Event("change"));
+          clearInterval(loopInsert);
+        }
+      }
+    }.bind(htmlValues, nbRowsBeforeClick),
+    50
+  );
 }
