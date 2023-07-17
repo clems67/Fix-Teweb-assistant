@@ -58,8 +58,6 @@ let loopCheckFilterInput = setInterval(() => {
 
 function GetProjectListFacturable(getProjects = true) {
   changeActivitySelected("facturable");
-  filterInput.value = "";
-  buttonUpdateAll.textContent = "Charger les projets facturables";
   if (getProjects) {
     return GetProjectList("facturable");
   }
@@ -67,8 +65,6 @@ function GetProjectListFacturable(getProjects = true) {
 
 function GetProjectListNonFacturable(getProjects = true) {
   changeActivitySelected("nonFacturable");
-  filterInput.value = "";
-  buttonUpdateAll.textContent = "Charger les projets non facturables";
   if (getProjects) {
     return GetProjectList("nonFacturable");
   }
@@ -76,8 +72,6 @@ function GetProjectListNonFacturable(getProjects = true) {
 
 function GetProjectListAbscence(getProjects = true) {
   changeActivitySelected("absFormDeleg");
-  filterInput.value = "";
-  buttonUpdateAll.textContent = "Charger les projets absence";
   if (getProjects) {
     return GetProjectList("absFormDeleg");
   }
@@ -85,18 +79,22 @@ function GetProjectListAbscence(getProjects = true) {
 
 function changeActivitySelected(activity) {
   localStorage.setItem("activitySelected", activity);
+  filterInput.value = "";
   buttonFacturable.style = "border-width: 2px; border-color: black;";
   buttonNonFacturable.style = "border-width: 2px; border-color: black;";
   buttonAbsence.style = "border-width: 2px; border-color: black;";
   switch (activity) {
     case "facturable":
       buttonFacturable.style = "border-width: 5px; border-color: green;";
+      buttonUpdateAll.textContent = "Télécharger tout les projets facturables";
       break;
     case "nonFacturable":
       buttonNonFacturable.style = "border-width: 5px; border-color: green;";
+      buttonUpdateAll.textContent = "Télécharger tout les projets  non facturables";
       break;
     case "absFormDeleg":
       buttonAbsence.style = "border-width: 5px; border-color: green;";
+      buttonUpdateAll.textContent = "Télécharger tout les projets absence";
       break;
   }
 }

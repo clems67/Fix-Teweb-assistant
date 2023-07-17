@@ -1,8 +1,4 @@
 chrome.runtime.onMessage.addListener(function (response, sender, sendResponse) {
-  if (response.responseType !== "isDownloading") {
-    console.log("listener worked ! its response :");
-    console.log(response);
-  }
   switch (response.responseType) {
     case "get_projects":
       const return_obj = GetProjectList(response.activityType);
@@ -265,7 +261,7 @@ function sendIteration(iteration, nbBU) {
   });
 }
 
-function insertProject(activityType, BUtoFill, projectToFill) {
+async function insertProject(activityType, BUtoFill, projectToFill) {
   let htmlValues = getHtmlValues(activityType);
   let nbRowsBeforeClick = document.getElementById(htmlValues.table).rows.length;
   console.log(htmlValues);
@@ -286,10 +282,12 @@ function insertProject(activityType, BUtoFill, projectToFill) {
         if (selectBU.value !== BUtoFill) {
           var trigger = document.createElement("option");
           trigger.value = "trigger";
-          selectBU.add(trigger);
+          selectProject.add(trigger);
           selectBU.value = BUtoFill;
           selectBU.dispatchEvent(new Event("change"));
-        } else if (selectBU[selectBU.options.length - 1].value !== "trigger") {
+        } else if (
+          selectProject[selectProject.options.length - 1].value !== "trigger"
+        ) {
           var options = Array.from(selectProject.options);
           options.forEach(function (option) {
             if (option.text === projectToFill) {
@@ -298,6 +296,7 @@ function insertProject(activityType, BUtoFill, projectToFill) {
           });
           selectProject.dispatchEvent(new Event("change"));
           clearInterval(loopInsert);
+          return;
         }
       }
     }.bind(htmlValues, nbRowsBeforeClick),
