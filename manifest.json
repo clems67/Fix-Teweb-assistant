@@ -1,15 +1,31 @@
 {
   "manifest_version": 3,
   "name": "Fix TEWEB assistant",
-  "version": "2.0",
+  "version": "2.1",
   "permissions": ["tabs", "storage"],
   "background": {
     "service_worker": "background.js"
   },
   "content_scripts": [
     {
-      "matches": ["https://teweb.fr.sogeti.com/*"],
-      "js": ["./main.js", "./searchBars.js"]
+      "matches": ["https://teweb.fr.sogeti.com/TEWeb/ui/Cra.aspx"],
+      "js": ["./main.js", "./searchBars_activité.js"]
+    },
+    {
+      "matches": ["https://teweb.fr.sogeti.com/TEWeb/ui/Astreintes.aspx"],
+      "js": ["./searchBars_astreintes.js"]
+    },
+    {
+      "matches": ["https://teweb.fr.sogeti.com/TEWeb/ui/HeuresExcedentaires.aspx"],
+      "js": ["./searchBars_heuresExcedentaires.js"]
+    },
+    {
+      "matches": ["https://teweb.fr.sogeti.com/TEWeb/ui/Tea.aspx"],
+      "js": ["./searchBars_tea.js"]
+    },
+    {
+      "matches": ["https://teweb.fr.sogeti.com/TEWeb/UI/Ajustement.aspx"],
+      "js": ["./searchBars_ajustement.js"]
     }
   ],
   "action": {
