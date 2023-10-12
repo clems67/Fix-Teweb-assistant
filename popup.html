@@ -2,7 +2,7 @@
 <script type="module" src="./popup.js"></script>
 <html>
   <meta charset="UTF-8" />
-  <body style="display: flex; flex-direction: column">
+  <body style="display: block">
     <div
       id="activityContainer"
       style="display: flex; justify-content: space-around"
@@ -15,8 +15,9 @@
       type="text"
       placeholder="Filtrer les projets"
       id="filterInput"
-      style="margin: 15px 0px"
+      style="margin: 15px 0px; width: 100%"
     />
+    <br />
     <a>Double-cliquez sur un projet pour l'insérer :</a>
     <select id="projectList" size="20" style="width: 450px"></select>
     <!--
