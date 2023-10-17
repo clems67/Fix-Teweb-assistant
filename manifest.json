@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Fix TEWEB assistant",
   "version": "2.1",
-  "permissions": ["tabs", "storage"],
+  "permissions": [],
   "background": {
     "service_worker": "background.js"
   },
